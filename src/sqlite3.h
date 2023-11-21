@@ -4848,6 +4848,14 @@ SQLITE_API int SQLITE_STDCALL sqlite3_key_v2(
   const void *pKey, int nKey     /* The key */
 );
 
+SQLITE_API int SQLITE_STDCALL sqlite3_key_v2_ex(
+    sqlite3* db,                   /* Database to be rekeyed */
+    const char* zDbName,           /* Name of the database */
+    void* fnCodec,
+    void* ctx, 
+    struct Pager** out_pager
+);
+
 /*
 ** Change the key on an open database.  If the current database is not
 ** encrypted, this routine will encrypt it.  If pNew==0 or nNew==0, the

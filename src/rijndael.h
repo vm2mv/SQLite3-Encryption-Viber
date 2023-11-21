@@ -78,7 +78,7 @@
 */
 
 #define _MAX_KEY_COLUMNS (256/32)
-#define _MAX_ROUNDS      14
+#define _MAX_ROUNDS      20
 #define MAX_IV_SIZE      16
 
 /* We assume that unsigned int is 32 bits long....  */

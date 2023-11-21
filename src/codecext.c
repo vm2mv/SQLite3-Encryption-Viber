@@ -20,6 +20,11 @@ void sqlite3CodecFree(void *pCodecArg)
   }
 }
 
+void sqlite3CodecFreeEx(void* pCodecArg)
+{
+    return;
+}
+
 void sqlite3CodecSizeChange(void *pArg, int pageSize, int reservedSize)
 {
 }
@@ -163,6 +168,22 @@ int sqlite3CodecAttach(sqlite3* db, int nDb, const void* zKey, int nKey)
   return SQLITE_OK;
 }
 
+int sqlite3CodecAttachEx(sqlite3* db, int nDb, void* fnCodec, void* ctx, Pager** out_pager)
+{
+    
+    Db* pDb = &db->aDb[nDb];
+    Btree* pBt = pDb->pBt;
+    Pager* pPg = sqlite3BtreePager(pBt);
+
+    mySqlite3PagerSetCodec(pPg, fnCodec, sqlite3CodecSizeChange, sqlite3CodecFreeEx, ctx);
+    sqlite3BtreeSetPageSize(pBt, 0, 0xC, 0);
+
+    if (out_pager)
+        *out_pager = pPg;
+
+    return SQLITE_OK;
+}
+
 void sqlite3CodecGetKey(sqlite3* db, int nDb, void** zKey, int* nKey)
 {
   /*
@@ -205,11 +226,18 @@ int sqlite3_key(sqlite3 *db, const void *zKey, int nKey)
   return sqlite3_key_v2(db, "main", zKey, nKey);
 }
 
-int sqlite3_key_v2(sqlite3 *db, const char *zDbName, const void *zKey, int nKey)
+int sqlite3_key_v2_ex(sqlite3 *db, const char *zDbName, void* fnCodec, void* ctx, Pager** out_pager)
 {
   /* The key is only set for the main database, not the temp database  */
   int dbIndex = dbFindIndex(db, zDbName);
-  return sqlite3CodecAttach(db, dbIndex, zKey, nKey);
+  return sqlite3CodecAttachEx(db, dbIndex, fnCodec, ctx, out_pager);
+}
+
+int sqlite3_key_v2(sqlite3* db, const char* zDbName, const void* zKey, int nKey)
+{
+    /* The key is only set for the main database, not the temp database  */
+    int dbIndex = dbFindIndex(db, zDbName);
+    return sqlite3CodecAttach(db, dbIndex, zKey, nKey);
 }
 
 int sqlite3_rekey_v2(sqlite3 *db, const char *zDbName, const void *zKey, int nKey)
